@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6df6">
+<title>Tally</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root{
+  --bg:#f4f5f8;--card:#ffffff;--text:#13171d;--muted:#6a7280;--line:#e4e7ec;
+  --brand:#2f6df6;--brand-ink:#ffffff;
+  --ok:#15803d;--okbg:#dcf5e5;--wk:#b45309;--wkbg:#fdecc8;
+  --bad:#dc2626;--badbg:#fde4e4;--live:#2f6df6;--livebg:#e0eaff;--break:#b45309;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.05);
+  --radius:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0e1116;--card:#161b22;--text:#e8ebf0;--muted:#8b94a3;--line:#262d38;
+    --brand:#5b8cff;--brand-ink:#0b1020;
+    --ok:#4ade80;--okbg:#12311f;--wk:#fbbf24;--wkbg:#3a2c0d;
+    --bad:#f87171;--badbg:#3a1717;--live:#7aa2ff;--livebg:#17264d;--break:#fbbf24;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px 40px}
+
+/* header */
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hbar{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;letter-spacing:-.01em}
+.logo i{width:26px;height:26px;border-radius:8px;background:var(--brand);display:inline-grid;place-items:center}
+.logo i::after{content:"";width:12px;height:12px;border:2px solid var(--brand-ink);border-radius:50%;border-top-color:transparent}
+.spacer{flex:1}
+select.sem{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;max-width:46vw;font-weight:600}
+.icon-btn{background:var(--card);border:1px solid var(--line);border-radius:10px;width:38px;height:38px;cursor:pointer}
+
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.grid-top{display:grid;gap:16px;margin-top:16px;grid-template-columns:1fr}
+@media(min-width:860px){.grid-top{grid-template-columns:420px 1fr}}
+
+/* today */
+.today-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.today-date{color:var(--muted);font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;background:var(--line);color:var(--muted)}
+.chip.working{background:var(--livebg);color:var(--live)}
+.chip.onbreak{background:var(--wkbg);color:var(--wk)}
+.chip.done{background:var(--okbg);color:var(--ok)}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip.working .dot,.chip.onbreak .dot{animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.clock{font-size:46px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:10px 0 2px}
+.clock-sub{color:var(--muted);font-size:13px;min-height:20px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.act{border:0;border-radius:12px;padding:15px 8px;font-weight:700;font-size:15px;cursor:pointer;transition:transform .08s,opacity .2s}
+.act:active:not(:disabled){transform:scale(.97)}
+.act:disabled{opacity:.28;cursor:not-allowed}
+.act.in{background:var(--ok);color:#fff}
+.act.bs{background:#d97706;color:#fff}
+.act.be{background:var(--brand);color:var(--brand-ink)}
+.act.out{background:var(--bad);color:#fff}
+.link{background:none;border:0;color:var(--brand);cursor:pointer;padding:0;font-weight:600}
+
+/* metrics */
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:560px){.metrics{grid-template-columns:repeat(3,1fr)}}
+.metric{background:var(--bg);border-radius:12px;padding:12px 14px}
+.metric .k{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.metric .v{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+.metric .s{font-size:12px;color:var(--muted)}
+.metric.big{grid-column:span 2}
+@media(min-width:560px){.metric.big{grid-column:span 1}}
+.metric.big .v{color:var(--brand)}
+
+/* month */
+.month-bar{display:flex;align-items:center;gap:8px;margin:22px 0 12px;flex-wrap:wrap}
+.month-bar h2{margin:0;font-size:20px;letter-spacing:-.02em;min-width:150px}
+.nav{background:var(--card);border:1px solid var(--line);border-radius:10px;width:36px;height:36px;cursor:pointer}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:transparent}
+.btn.danger{color:var(--bad)}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--brand);color:var(--brand-ink)}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:0 0 10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:4px;display:inline-block;border:1px solid var(--line)}
+.sw.ok{background:var(--okbg);border-color:var(--ok)}
+.sw.wk{background:var(--wkbg);border-color:var(--wk)}
+.sw.live{background:var(--livebg);border-color:var(--live)}
+.sw.miss{background:repeating-linear-gradient(135deg,var(--badbg) 0 3px,transparent 3px 6px);border-color:var(--bad)}
+
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center;padding:4px 0}
+.dow.we{opacity:.7}
+.day{min-height:64px;border:1px solid var(--line);border-radius:10px;padding:6px 7px;background:var(--card);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+@media(min-width:700px){.day{min-height:104px;padding:9px 10px}}
+.day.blank{visibility:hidden;cursor:default}
+.day .n{font-size:12px;font-weight:700;color:var(--muted)}
+.day .h{font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+@media(min-width:700px){.day .h{font-size:16px}}
+.day .t{font-size:11px;color:var(--muted);display:none;font-variant-numeric:tabular-nums}
+@media(min-width:700px){.day .t{display:block}}
+.day.ok{background:var(--okbg);border-color:color-mix(in srgb,var(--ok) 45%,transparent)}
+.day.ok .h,.day.ok .n{color:var(--ok)}
+.day.wk{background:var(--wkbg);border-color:color-mix(in srgb,var(--wk) 45%,transparent)}
+.day.wk .h,.day.wk .n{color:var(--wk)}
+.day.live{background:var(--livebg);border-color:var(--live)}
+.day.live .h,.day.live .n{color:var(--live)}
+.day.miss{background:repeating-linear-gradient(135deg,var(--badbg) 0 4px,transparent 4px 9px)}
+.day.future{opacity:.5}
+.day.we:not(.ok):not(.wk):not(.live){background:color-mix(in srgb,var(--bg) 60%,var(--card))}
+.day.today .n{background:var(--brand);color:var(--brand-ink);border-radius:6px;padding:0 6px;align-self:flex-start}
+
+/* table */
+.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--bg)}
+tr.row{cursor:pointer}
+tr.row:hover td{background:var(--bg)}
+tr.row.we td:first-child{box-shadow:inset 3px 0 var(--wk)}
+tr.row.wd td:first-child{box-shadow:inset 3px 0 var(--ok)}
+tfoot td{font-weight:700;background:var(--bg);border-bottom:0}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+
+/* dialog */
+dialog{border:1px solid var(--line);border-radius:18px;padding:0;background:var(--card);color:var(--text);width:min(460px,94vw);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(10,14,20,.55)}
+.dlg{padding:20px;display:grid;gap:14px}
+.dlg h3{margin:0;font-size:18px}
+.field{display:grid;gap:5px}
+.field label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.brk-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center}
+.brk-row .x{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer;color:var(--bad)}
+.dlg-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.dlg-actions .left{margin-right:auto}
+.hint{font-size:12px;color:var(--muted)}
+.section-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:6px}
+dialog{max-height:92vh;overflow:auto}
+.banner{display:none;margin-top:16px;padding:12px 16px;border-radius:12px;background:var(--wkbg);color:var(--wk);font-weight:600;align-items:center;gap:10px;flex-wrap:wrap}
+.banner.show{display:flex}
+.banner .btn{margin-left:auto}
+.metric.pay .v{color:var(--ok)}
+.rate-row{display:flex;align-items:center;gap:8px;justify-content:space-between;background:var(--bg);border-radius:10px;padding:8px 12px}
+.snap{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <div class="logo"><i></i>Tally</div>
+    <div class="spacer"></div>
+    <select class="sem" id="semSelect" aria-label="Semester"></select>
+    <button class="icon-btn" id="btnSettings" aria-label="Settings" title="Settings">&#9881;</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="banner" id="banner"></div>
+  <section class="grid-top">
+    <div class="card" id="today"></div>
+    <div class="card">
+      <div class="metrics" id="metrics"></div>
+    </div>
+  </section>
+
+  <div class="month-bar">
+    <button class="nav" id="prev" aria-label="Previous month">&#8249;</button>
+    <h2 id="monthTitle"></h2>
+    <button class="nav" id="next" aria-label="Next month">&#8250;</button>
+    <button class="btn" id="goToday">Today</button>
+    <div class="spacer"></div>
+    <div class="seg" id="modeSeg">
+      <button data-m="cal" class="on">Calendar</button>
+      <button data-m="tbl">Table</button>
+    </div>
+  </div>
+  <div class="legend">
+    <span><i class="sw ok"></i>Weekday worked</span>
+    <span><i class="sw wk"></i>Weekend worked</span>
+    <span><i class="sw live"></i>In progress</span>
+    <span><i class="sw miss"></i>Weekday not logged</span>
+  </div>
+  <div id="monthView"></div>
+</main>
+
+<dialog id="dlg"></dialog>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+// Storage key keeps its original name on purpose: changing it would hide saved data.
+const KEY = "clocklog.v1";
+const pad = n => String(n).padStart(2, "0");
+const DAY = 86400000;
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOW = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+/* ---------- state ---------- */
+let S;
+const now0 = new Date();
+let view = { y: now0.getFullYear(), m: now0.getMonth() };
+let mode = "cal";
+
+/* DATA SAFETY: the storage key above never changes, so updating the app files keeps your data.
+   When the data shape changes, add a step to migrate(): old data is upgraded, never discarded. */
+const SCHEMA = 2;
+const BAK_KEY = KEY + ".backups";
+
+function fresh(){ return { schema: SCHEMA, semesters: [], activeId: null, currency: "AED", lastExport: null }; }
+function migrate(j){
+  if (!j.schema) j.schema = 1;
+  if (j.schema < 2) {
+    j.semesters.forEach(s => { s.rates = s.rates || []; });
+    j.currency = j.currency || "AED";
+    j.lastExport = j.lastExport || null;
+    j.schema = 2;
+  }
+  return j;
+}
+function load(){
+  const raw = localStorage.getItem(KEY);
+  if (!raw) return fresh();
+  try {
+    const j = JSON.parse(raw);
+    if (j && Array.isArray(j.semesters)) {
+      if ((j.schema || 1) < SCHEMA) snapshot(raw, "before update");
+      const m = migrate(j);
+      localStorage.setItem(KEY, JSON.stringify(m));
+      return m;
+    }
+  } catch(e){}
+  // Unreadable data is kept under another key, never silently overwritten.
+  try { localStorage.setItem(KEY + ".unreadable." + Date.now(), raw); } catch(e){}
+  return fresh();
+}
+function readBackups(){ try { return JSON.parse(localStorage.getItem(BAK_KEY)) || []; } catch(e){ return []; } }
+function snapshot(raw, label){
+  try {
+    const b = readBackups(); b.push({ t: Date.now(), label, data: raw });
+    while (b.length > 7) b.shift();
+    localStorage.setItem(BAK_KEY, JSON.stringify(b));
+  } catch(e){}
+}
+function save(){
+  const prev = localStorage.getItem(KEY);
+  const b = readBackups(), last = b.length ? dkey(new Date(b[b.length-1].t)) : null;
+  if (prev && last !== dkey(new Date())) snapshot(prev, "daily");
+  localStorage.setItem(KEY, JSON.stringify(S));
+}
+function adopt(j){
+  S = migrate(j);
+  if (!sem()) S.activeId = S.semesters[0]?.id || null;
+  save();
+}
+function exportBackup(){
+  S.lastExport = Date.now(); save();
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = `tally-backup-${dkey(new Date())}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  render();
+}
+const sem = () => S.semesters.find(s => s.id === S.activeId) || null;
+
+/* ---------- time helpers ---------- */
+const dkey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const keyToDate = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d); };
+const fmtTime = ms => { const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtDur = ms => { const mins = Math.round(Math.max(0, ms)/60000); return `${Math.floor(mins/60)}h ${pad(mins%60)}m`; };
+const fmtClock = ms => { const s = Math.floor(Math.max(0, ms)/1000); return `${pad(Math.floor(s/3600))}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}`; };
+const decHours = ms => (ms/3600000).toFixed(2);
+const isWeekend = d => d.getDay() === 0 || d.getDay() === 6;
+function rateFor(s, key){
+  let r = 0, best = null;
+  (s.rates || []).forEach(x => { const f = x.from || ""; if (f <= key && (best === null || f >= best)) { best = f; r = x.rate; } });
+  return r;
+}
+const money = v => `${S.currency || "AED"} ${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const dayPay = (s, key, e, now) => netMs(e, now) / 3600000 * rateFor(s, key);
+
+function breakMs(e, now){
+  const end = e.out ?? now;
+  return (e.breaks || []).reduce((a, b) => a + Math.max(0, Math.min(b.e ?? end, end) - b.s), 0);
+}
+function netMs(e, now){
+  const end = e.out ?? now;
+  return Math.max(0, end - e.in - breakMs(e, now));
+}
+function openEntry(){
+  const s = sem(); if (!s) return null;
+  for (const k of Object.keys(s.entries)) if (s.entries[k].out == null) return [k, s.entries[k]];
+  return null;
+}
+function statusOf(e){
+  if (!e) return "none";
+  if (e.out != null) return "done";
+  const last = (e.breaks || [])[(e.breaks || []).length - 1];
+  return last && last.e == null ? "onbreak" : "working";
+}
+
+/* ---------- actions ---------- */
+function act(type){
+  const s = sem(); if (!s) return;
+  const now = Date.now();
+  const tk = dkey(new Date());
+  const open = openEntry();
+  if (type === "in" && !open && !s.entries[tk]) {
+    s.entries[tk] = { in: now, out: null, breaks: [] };
+  } else if (open) {
+    const e = open[1];
+    const st = statusOf(e);
+    if (type === "bs" && st === "working") e.breaks.push({ s: now, e: null });
+    if (type === "be" && st === "onbreak") e.breaks[e.breaks.length-1].e = now;
+    if (type === "out") {
+      if (st === "onbreak") e.breaks[e.breaks.length-1].e = now;
+      e.out = now;
+    }
+  }
+  save(); render();
+}
+function resume(key){
+  const s = sem(); if (!s || openEntry()) return;
+  s.entries[key].out = null; save(); render();
+}
+
+/* ---------- rendering ---------- */
+function renderBanner(){
+  const el = $("#banner"), keys = S.semesters.flatMap(x => Object.keys(x.entries)).sort();
+  let stale = false;
+  if (keys.length) stale = S.lastExport ? Date.now() - S.lastExport > 14 * DAY : Date.now() - keyToDate(keys[0]) > 7 * DAY;
+  if (stale) {
+    el.innerHTML = `<span>${S.lastExport ? "It has been over 2 weeks since your last backup." : "You have not exported a backup file yet."}</span><button class="btn" id="bkNow">Export backup</button>`;
+    el.classList.add("show"); $("#bkNow").onclick = exportBackup;
+  } else el.classList.remove("show");
+}
+
+function render(){
+  renderHeader(); renderBanner();
+  const s = sem();
+  if (!s) { $("#today").innerHTML = ""; $("#metrics").innerHTML = ""; $("#monthView").innerHTML = ""; return; }
+  renderToday(); renderMetrics(); renderMonth();
+}
+
+function renderHeader(){
+  const sel = $("#semSelect");
+  sel.innerHTML = S.semesters.map(s => `<option value="${s.id}" ${s.id===S.activeId?"selected":""}>${esc(s.name)}</option>`).join("") || `<option>No semester</option>`;
+}
+
+function currentEntryInfo(){
+  const open = openEntry();
+  if (open) return { key: open[0], e: open[1] };
+  const s = sem(), tk = dkey(new Date());
+  return s.entries[tk] ? { key: tk, e: s.entries[tk] } : { key: tk, e: null };
+}
+
+function renderToday(){
+  const { key, e } = currentEntryInfo();
+  const st = statusOf(e);
+  const now = Date.now();
+  const labels = { none: "Not clocked in", working: "Working", onbreak: "On break", done: "Shift complete" };
+  const d = new Date();
+  const dateStr = `${DOW[(d.getDay()+6)%7]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  const net = e ? netMs(e, now) : 0;
+  let sub = "";
+  if (e) {
+    sub = `In ${fmtTime(e.in)}`;
+    if (e.out != null) sub += ` · Out ${fmtTime(e.out)}`;
+    const b = breakMs(e, now);
+    if (b > 0 || st === "onbreak") sub += ` · Break ${fmtDur(b)}`;
+    if (key !== dkey(d)) sub += ` · started ${key}`;
+  } else sub = "Tap Clock in to start your day";
+  $("#today").innerHTML = `
+    <div class="today-head">
+      <div><div class="today-date">${dateStr}</div></div>
+      <span class="chip ${st}"><i class="dot"></i>${labels[st]}</span>
+    </div>
+    <div class="clock" id="liveClock">${fmtClock(net)}</div>
+    <div class="clock-sub" id="liveSub">${sub}</div>
+    <div class="actions">
+      <button class="act in" data-a="in" ${st==="none"?"":"disabled"}>Clock in</button>
+      <button class="act out" data-a="out" ${st==="working"||st==="onbreak"?"":"disabled"}>Clock out</button>
+      <button class="act bs" data-a="bs" ${st==="working"?"":"disabled"}>Start break</button>
+      <button class="act be" data-a="be" ${st==="onbreak"?"":"disabled"}>End break</button>
+    </div>
+    ${st==="done" ? `<div style="margin-top:12px"><button class="link" data-resume="${key}">Resume this shift</button></div>` : ""}
+  `;
+}
+
+function monthEntries(y, m){
+  const s = sem(), p = `${y}-${pad(m+1)}-`;
+  return Object.keys(s.entries).filter(k => k.startsWith(p)).sort().map(k => [k, s.entries[k]]);
+}
+
+function renderMetrics(){
+  const s = sem(), now = Date.now();
+  const list = monthEntries(view.y, view.m);
+  let total = 0, brk = 0, wd = 0, we = 0, pay = 0;
+  list.forEach(([k, e]) => {
+    total += netMs(e, now); brk += breakMs(e, now); pay += dayPay(s, k, e, now);
+    if (isWeekend(keyToDate(k))) we++; else wd++;
+  });
+  const days = list.length;
+  let semTotal = 0, semPay = 0;
+  Object.entries(s.entries).forEach(([k, e]) => { semTotal += netMs(e, now); semPay += dayPay(s, k, e, now); });
+  const semDays = Object.keys(s.entries).length;
+  const hasRate = (s.rates || []).length > 0;
+  const M = (k, v, sub, cls="") => `<div class="metric ${cls}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${sub}</div></div>`;
+  $("#metrics").innerHTML =
+    M("Hours this month", fmtDur(total), `${decHours(total)} h`, "big") +
+    M("Pay this month", money(pay), hasRate ? (days ? `${money(pay/days)} per day` : "no days yet") : "Set your hourly rate in Settings", "pay") +
+    M("Days worked", days, `${wd} weekday · ${we} weekend`) +
+    M("Average per day", days ? fmtDur(total/days) : "0h 00m", "worked days only") +
+    M("Break time", fmtDur(brk), days ? `${fmtDur(brk/days)} per day` : "no breaks") +
+    M("Semester total", fmtDur(semTotal), `${semDays} days · ${money(semPay)}`);
+}
+
+function renderMonth(){
+  $("#monthTitle").textContent = `${MONTHS[view.m]} ${view.y}`;
+  const s = sem(), now = Date.now();
+  const todayKey = dkey(new Date());
+  const keys = Object.keys(s.entries).sort();
+  const firstKey = keys[0] || null;
+  const daysIn = new Date(view.y, view.m+1, 0).getDate();
+  $("#monthView").innerHTML = mode === "cal" ? calHTML() : tblHTML();
+
+  function calHTML(){
+    const off = (new Date(view.y, view.m, 1).getDay() + 6) % 7;
+    let h = `<div class="cal">` + DOW.map((d,i) => `<div class="dow ${i>4?"we":""}">${d}</div>`).join("");
+    for (let i = 0; i < off; i++) h += `<div class="day blank"></div>`;
+    for (let d = 1; d <= daysIn; d++) {
+      const date = new Date(view.y, view.m, d), k = dkey(date), e = s.entries[k], we = isWeekend(date);
+      const cls = ["day"];
+      if (we) cls.push("we");
+      if (k === todayKey) cls.push("today");
+      if (e) cls.push(e.out == null ? "live" : (we ? "wk" : "ok"));
+      else if (k > todayKey) cls.push("future");
+      else if (!we && firstKey && k > firstKey && k < todayKey) cls.push("miss");
+      h += `<button class="${cls.join(" ")}" data-day="${k}"><span class="n">${d}</span>` +
+        (e ? `<span class="h">${fmtDur(netMs(e, now))}</span><span class="t">${fmtTime(e.in)} to ${e.out!=null?fmtTime(e.out):"now"}</span>` +
+             (breakMs(e, now) ? `<span class="t">break ${fmtDur(breakMs(e, now))}</span>` : "") +
+             (rateFor(s, k) > 0 ? `<span class="t">${money(dayPay(s, k, e, now))}</span>` : "") : "") + `</button>`;
+    }
+    return h + `</div>`;
+  }
+
+  function tblHTML(){
+    const list = monthEntries(view.y, view.m);
+    if (!list.length) return `<div class="tbl-wrap"><div class="empty">No entries this month</div></div>`;
+    let tot = 0, tb = 0, tp = 0;
+    const rows = list.map(([k, e]) => {
+      const d = keyToDate(k), n = netMs(e, now), b = breakMs(e, now), p = dayPay(s, k, e, now);
+      tot += n; tb += b; tp += p;
+      return `<tr class="row ${isWeekend(d)?"we":"wd"}" data-day="${k}">
+        <td>${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)}</td><td>${DOW[(d.getDay()+6)%7]}</td>
+        <td>${fmtTime(e.in)}</td><td>${e.out!=null?fmtTime(e.out):"in progress"}</td>
+        <td>${b?fmtDur(b):"-"}</td><td><b>${fmtDur(n)}</b></td><td>${decHours(n)}</td><td>${money(p)}</td></tr>`;
+    }).join("");
+    return `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Day</th><th>In</th><th>Out</th><th>Break</th><th>Net</th><th>Hours</th><th>Pay</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td colspan="4">Total (${list.length} days)</td><td>${fmtDur(tb)}</td><td>${fmtDur(tot)}</td><td>${decHours(tot)}</td><td>${money(tp)}</td></tr></tfoot></table></div>`;
+  }
+}
+
+/* live tick */
+let tickN = 0;
+setInterval(() => {
+  const s = sem(); if (!s) return;
+  const open = openEntry(); tickN++;
+  if (!open) return;
+  const e = open[1], now = Date.now();
+  const c = $("#liveClock"); if (c) c.textContent = fmtClock(netMs(e, now));
+  const b = breakMs(e, now), sb = $("#liveSub");
+  if (sb) sb.textContent = `In ${fmtTime(e.in)}` + (b > 0 || statusOf(e)==="onbreak" ? ` · Break ${fmtDur(b)}` : "") + (open[0] !== dkey(new Date()) ? ` · started ${open[0]}` : "");
+  if (tickN % 30 === 0) { renderMetrics(); renderMonth(); }
+}, 1000);
+
+/* ---------- dialogs ---------- */
+const dlg = $("#dlg");
+function openDlg(html){ dlg.innerHTML = `<div class="dlg">${html}</div>`; if (!dlg.open) dlg.showModal(); }
+function closeDlg(){ if (dlg.open) dlg.close(); }
+dlg.addEventListener("click", ev => { if (ev.target === dlg) closeDlg(); });
+
+function semesterDialog(first){
+  const d = new Date();
+  const guess = (d.getMonth() >= 7 ? "Autumn " : d.getMonth() >= 2 ? "Spring " : "Autumn ") + d.getFullYear();
+  openDlg(`
+    <h3>${first ? "Create your first semester" : "New semester"}</h3>
+    <div class="field"><label>Semester name</label><input id="semName" value="${esc(guess)}" maxlength="40" autofocus></div>
+    <div class="dlg-actions">
+      ${first ? "" : `<button class="btn" id="cancel">Cancel</button>`}
+      <button class="btn primary" id="create">Create</button>
+    </div>`);
+  $("#create").onclick = () => {
+    const name = $("#semName").value.trim(); if (!name) return;
+    const s = { id: uid(), name, entries: {}, rates: [] };
+    S.semesters.push(s); S.activeId = s.id; save(); closeDlg(); render();
+  };
+  if (!first) $("#cancel").onclick = closeDlg;
+  if (first) dlg.addEventListener("cancel", ev => { if (!S.semesters.length) ev.preventDefault(); }, { once: true });
+}
+
+function settingsDialog(){
+  const s = sem();
+  const rates = s ? [...(s.rates || [])].sort((a, b) => (a.from || "").localeCompare(b.from || "")) : [];
+  const baks = readBackups().slice().reverse();
+  const lastExp = S.lastExport ? new Date(S.lastExport).toLocaleDateString() : "never";
+  openDlg(`
+    <h3>Settings</h3>
+    <div class="section-title">Semester</div>
+    ${s ? `<div class="field"><label>Rename current semester</label><input id="rn" value="${esc(s.name)}" maxlength="40"></div>` : ""}
+    <div class="dlg-actions" style="justify-content:flex-start">
+      ${s ? `<button class="btn" id="saveName">Save name</button>` : ""}
+      <button class="btn" id="newSem">New semester</button>
+      ${s ? `<button class="btn danger" id="delSem">Delete semester</button>` : ""}
+    </div>
+
+    <div class="section-title">Pay</div>
+    <div class="field"><label>Currency</label><input id="cur" value="${esc(S.currency || "AED")}" maxlength="6"></div>
+    ${s ? `
+      <div style="display:grid;gap:6px">${rates.length ? rates.map((r, i) => `<div class="rate-row"><span><b>${money(r.rate)}</b> per hour, ${r.from ? "from " + esc(r.from) : "all days"}</span><button class="btn danger" data-rm="${i}">Remove</button></div>`).join("") : `<div class="hint">No hourly rate set for this semester.</div>`}</div>
+      <div class="two">
+        <div class="field"><label>Hourly rate</label><input id="rate" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g. 25"></div>
+        <div class="field"><label>Applies from (optional)</label><input id="rfrom" type="date"></div>
+      </div>
+      <div class="hint">Leave the date empty to apply the rate to every day. If your rate changes later, add the new rate with its start date and earlier days keep the old rate.</div>
+      <div class="dlg-actions" style="justify-content:flex-start"><button class="btn primary" id="addRate">Add rate</button></div>` : ""}
+
+    <div class="section-title">Backup and safety</div>
+    <div class="hint">Your data is saved in this browser and is not touched when the app is updated. Last backup file: ${lastExp}. A backup file is your only protection if browser data is cleared, so export one regularly.</div>
+    <div class="dlg-actions" style="justify-content:flex-start">
+      <button class="btn" id="exp">Export backup (JSON)</button>
+      <button class="btn" id="imp">Import backup</button>
+      <input type="file" id="file" accept="application/json,.json" hidden>
+    </div>
+    ${baks.length ? `<div class="section-title">Automatic snapshots</div>` + baks.map((b, i) => `<div class="snap"><span>${new Date(b.t).toLocaleString()} (${esc(b.label)})</span><button class="btn" data-restore="${i}">Restore</button></div>`).join("") : ""}
+    <div class="dlg-actions"><button class="btn primary" id="close">Done</button></div>`);
+
+  $("#close").onclick = closeDlg;
+  $("#newSem").onclick = () => semesterDialog(false);
+  $("#cur").onchange = () => { S.currency = ($("#cur").value.trim() || "AED").toUpperCase(); save(); render(); };
+  if (s) {
+    $("#saveName").onclick = () => { const n = $("#rn").value.trim(); if (n) { s.name = n; save(); render(); closeDlg(); } };
+    $("#delSem").onclick = () => {
+      if (!confirm(`Delete "${s.name}" and all its entries? This cannot be undone.`)) return;
+      snapshot(JSON.stringify(S), "before delete");
+      S.semesters = S.semesters.filter(x => x.id !== s.id);
+      S.activeId = S.semesters[0]?.id || null; save(); closeDlg();
+      if (!S.activeId) semesterDialog(true); else render();
+    };
+    $("#addRate").onclick = () => {
+      const v = parseFloat($("#rate").value), from = $("#rfrom").value || "";
+      if (!(v >= 0)) { alert("Enter an hourly rate."); return; }
+      s.rates = (s.rates || []).filter(x => (x.from || "") !== from);
+      s.rates.push({ from, rate: v });
+      save(); render(); settingsDialog();
+    };
+    dlg.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => {
+      const r = rates[+b.dataset.rm];
+      s.rates = s.rates.filter(x => x !== r);
+      save(); render(); settingsDialog();
+    });
+  }
+  dlg.querySelectorAll("[data-restore]").forEach(b => b.onclick = () => {
+    const snap = baks[+b.dataset.restore];
+    if (!confirm("Replace current data with this snapshot? Your current data is snapshotted first.")) return;
+    try {
+      snapshot(JSON.stringify(S), "before restore");
+      adopt(JSON.parse(snap.data)); closeDlg(); render();
+      if (!S.semesters.length) semesterDialog(true);
+    } catch (e) { alert("That snapshot could not be read."); }
+  });
+  $("#exp").onclick = exportBackup;
+  $("#imp").onclick = () => $("#file").click();
+  $("#file").onchange = async ev => {
+    const f = ev.target.files[0]; if (!f) return;
+    try {
+      const j = JSON.parse(await f.text());
+      if (!j || !Array.isArray(j.semesters)) throw new Error("bad");
+      if (!confirm("Replace all current data with this backup? Your current data is snapshotted first.")) return;
+      snapshot(JSON.stringify(S), "before import");
+      adopt(j); closeDlg(); render();
+      if (!S.semesters.length) semesterDialog(true);
+    } catch (e) { alert("That file is not a valid Tally backup."); }
+  };
+}
+
+function entryDialog(key){
+  const s = sem(), ex = s.entries[key];
+  const d = keyToDate(key);
+  const title = `${DOW[(d.getDay()+6)%7]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  let breaks = ex ? ex.breaks.map(b => ({ s: fmtTime(b.s), e: b.e != null ? fmtTime(b.e) : "" })) : [];
+  const vIn = ex ? fmtTime(ex.in) : "09:00";
+  const vOut = ex ? (ex.out != null ? fmtTime(ex.out) : "") : "17:00";
+  openDlg(`
+    <h3>${title}</h3>
+    <div class="two">
+      <div class="field"><label>Clock in</label><input type="time" id="tin" value="${vIn}"></div>
+      <div class="field"><label>Clock out</label><input type="time" id="tout" value="${vOut}"></div>
+    </div>
+    <div class="section-title">Breaks</div>
+    <div id="brks" style="display:grid;gap:8px"></div>
+    <div><button class="link" id="addB">+ Add break</button></div>
+    <div class="hint">Leave clock out empty if the shift is still running.</div>
+    <div class="dlg-actions">
+      ${ex ? `<button class="btn danger left" id="del">Delete day</button>` : ""}
+      <button class="btn" id="cancel">Cancel</button>
+      <button class="btn primary" id="save">Save</button>
+    </div>`);
+  const draw = () => {
+    $("#brks").innerHTML = breaks.map((b, i) => `<div class="brk-row">
+      <input type="time" data-i="${i}" data-f="s" value="${b.s}"><input type="time" data-i="${i}" data-f="e" value="${b.e}">
+      <button class="x" data-x="${i}" aria-label="Remove break">&times;</button></div>`).join("");
+  };
+  draw();
+  $("#brks").oninput = ev => { const t = ev.target; if (t.dataset.i != null) breaks[+t.dataset.i][t.dataset.f] = t.value; };
+  $("#brks").onclick = ev => { const x = ev.target.closest("[data-x]"); if (x) { breaks.splice(+x.dataset.x, 1); draw(); } };
+  $("#addB").onclick = () => { breaks.push({ s: "12:00", e: "12:30" }); draw(); };
+  $("#cancel").onclick = closeDlg;
+  if (ex) $("#del").onclick = () => { if (confirm("Delete this day's entry?")) { delete s.entries[key]; save(); closeDlg(); render(); } };
+  $("#save").onclick = () => {
+    const tin = $("#tin").value, tout = $("#tout").value;
+    if (!tin) { alert("Clock in time is required."); return; }
+    const at = hhmm => { const [h, m] = hhmm.split(":").map(Number); return new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, m).getTime(); };
+    const after = (hhmm, base) => { let t = at(hhmm); while (t < base) t += DAY; return t; };
+    const tIn = at(tin);
+    const tOut = tout ? after(tout, tIn) : null;
+    const out = [];
+    for (const b of breaks) {
+      if (!b.s) continue;
+      const bs = after(b.s, tIn);
+      let be = b.e ? after(b.e, bs) : null;
+      if (be == null && tOut != null) be = tOut;
+      out.push({ s: bs, e: be });
+    }
+    if (tOut == null) {
+      const open = openEntry();
+      if (open && open[0] !== key) { alert(`Another shift (${open[0]}) is still running. Clock it out first.`); return; }
+    }
+    s.entries[key] = { in: tIn, out: tOut, breaks: out };
+    save(); closeDlg(); render();
+  };
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", ev => {
+  const a = ev.target.closest("[data-a]"); if (a && !a.disabled) return act(a.dataset.a);
+  const r = ev.target.closest("[data-resume]"); if (r) return resume(r.dataset.resume);
+  const d = ev.target.closest("[data-day]"); if (d && sem()) return entryDialog(d.dataset.day);
+});
+$("#semSelect").onchange = e => { S.activeId = e.target.value; save(); render(); };
+$("#btnSettings").onclick = settingsDialog;
+$("#prev").onclick = () => { view.m--; if (view.m < 0) { view.m = 11; view.y--; } renderMetrics(); renderMonth(); };
+$("#next").onclick = () => { view.m++; if (view.m > 11) { view.m = 0; view.y++; } renderMetrics(); renderMonth(); };
+$("#goToday").onclick = () => { const n = new Date(); view = { y: n.getFullYear(), m: n.getMonth() }; renderMetrics(); renderMonth(); };
+$("#modeSeg").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  mode = b.dataset.m;
+  document.querySelectorAll("#modeSeg button").forEach(x => x.classList.toggle("on", x === b));
+  renderMonth();
+};
+
+/* ---------- init ---------- */
+S = load();
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+if (!sem() && S.semesters.length) S.activeId = S.semesters[0].id;
+render();
+if (!S.semesters.length) semesterDialog(true);
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
