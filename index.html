@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2f6df6">
+<meta name="theme-color" content="#000000">
 <title>Tally</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 :root{
   --bg:#f4f5f8;--card:#ffffff;--text:#13171d;--muted:#6a7280;--line:#e4e7ec;
@@ -36,8 +36,7 @@ button,input,select{font:inherit;color:inherit}
 header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .hbar{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;letter-spacing:-.01em}
-.logo i{width:26px;height:26px;border-radius:8px;background:var(--brand);display:inline-grid;place-items:center}
-.logo i::after{content:"";width:12px;height:12px;border:2px solid var(--brand-ink);border-radius:50%;border-top-color:transparent}
+.logo .mark{width:28px;height:28px;display:block;border-radius:8px;box-shadow:0 0 0 1px var(--line)}
 .spacer{flex:1}
 select.sem{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;max-width:46vw;font-weight:600}
 .icon-btn{background:var(--card);border:1px solid var(--line);border-radius:10px;width:38px;height:38px;cursor:pointer}
@@ -160,7 +159,7 @@ dialog{max-height:92vh;overflow:auto}
 <body>
 <header>
   <div class="hbar">
-    <div class="logo"><i></i>Tally</div>
+    <div class="logo"><svg class="mark" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#000"/><g stroke-width="38" stroke-linecap="round" fill="none"><path d="M151 130V382M221 130V382M291 130V382M361 130V382" stroke="#fff"/><path d="M108 360L404 152" stroke="#ef2b2d"/></g></svg>Tally</div>
     <div class="spacer"></div>
     <select class="sem" id="semSelect" aria-label="Semester"></select>
     <button class="icon-btn" id="btnSettings" aria-label="Settings" title="Settings">&#9881;</button>

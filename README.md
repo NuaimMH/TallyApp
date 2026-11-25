@@ -5,7 +5,7 @@ Tap-to-log work hours with breaks and pay, organised by semester. Static app (HT
 ## Deploy on GitHub Pages
 
 1. Create a new GitHub repository (for example `tally`).
-2. Upload `index.html`, `manifest.webmanifest`, `sw.js`, `icon.svg` and this README to the repo root.
+2. Upload all files (`index.html`, `manifest.webmanifest`, `sw.js`, `icon.svg`, the three `.png` icons and this README) to the repo root.
 3. Go to Settings > Pages, set Source to "Deploy from a branch", choose `main` and `/ (root)`, then Save.
 4. Open `https://<your-username>.github.io/tally/` after a minute or two.
 5. On your phone, use "Add to Home Screen" to install it like an app.
